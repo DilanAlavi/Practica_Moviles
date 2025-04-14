@@ -5,19 +5,20 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [GitAccount::class, ExpenseEntity::class], version = 2, exportSchema = false)
+@Database(entities = [GitAccount::class, ExpenseEntity::class, IncomeEntity::class], version = 3, exportSchema = false)
 abstract class AppRoomDatabase : RoomDatabase() {
     abstract fun githubDao(): IGitAccountDAO
     abstract fun expenseDao(): IExpenseDAO
+    abstract fun incomeDao(): IIncomeDAO
 
     companion object {
         @Volatile
         var Instance: AppRoomDatabase? = null
 
         fun getDatabase(context: Context): AppRoomDatabase {
-            // if the Instance is not null, return it, otherwise create a new database instance.
             return Instance ?: synchronized(this) {
-                Room.databaseBuilder(context.applicationContext, AppRoomDatabase::class.java, "github_database")
+                Room.databaseBuilder(context.applicationContext, AppRoomDatabase::class.java, "app_database")
+                    .fallbackToDestructiveMigration()  // Para manejar la migración de versión 2 a 3
                     .build()
                     .also { Instance = it }
             }

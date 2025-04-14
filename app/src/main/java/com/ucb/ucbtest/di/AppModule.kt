@@ -34,6 +34,12 @@ import com.ucb.data.expense.IExpenseDataSource
 import com.ucb.usecases.SaveExpense
 import com.ucb.usecases.GetAllExpenses
 import com.ucb.data.ExpenseRepository
+import com.ucb.framework.income.IncomeLocalDataSource
+import com.ucb.data.income.IIncomeDataSource
+import com.ucb.usecases.SaveIncome
+import com.ucb.usecases.GetAllIncomes
+import com.ucb.data.IncomeRepository
+
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
@@ -157,5 +163,28 @@ object AppModule {
     @Singleton
     fun provideGetAllExpensesUseCase(repository: ExpenseRepository): GetAllExpenses {
         return GetAllExpenses(repository)
+    }
+    @Provides
+    @Singleton
+    fun provideIncomeLocalDataSource(@ApplicationContext context: Context): IIncomeDataSource {
+        return IncomeLocalDataSource(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideIncomeRepository(dataSource: IIncomeDataSource): IncomeRepository {
+        return IncomeRepository(dataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSaveIncomeUseCase(repository: IncomeRepository): SaveIncome {
+        return SaveIncome(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetAllIncomesUseCase(repository: IncomeRepository): GetAllIncomes {
+        return GetAllIncomes(repository)
     }
 }
