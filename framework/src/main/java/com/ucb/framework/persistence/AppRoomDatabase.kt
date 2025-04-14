@@ -5,9 +5,10 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [GitAccount::class], version = 1, exportSchema = false)
+@Database(entities = [GitAccount::class, ExpenseEntity::class], version = 2, exportSchema = false)
 abstract class AppRoomDatabase : RoomDatabase() {
     abstract fun githubDao(): IGitAccountDAO
+    abstract fun expenseDao(): IExpenseDAO
 
     companion object {
         @Volatile

@@ -29,7 +29,11 @@ import com.ucb.framework.datastore.LoginDataSource
 import com.ucb.framework.push.FirebaseNotificationDataSource
 import com.ucb.usecases.GetEmailKey
 import com.ucb.usecases.ObtainToken
-
+import com.ucb.framework.expense.ExpenseLocalDataSource
+import com.ucb.data.expense.IExpenseDataSource
+import com.ucb.usecases.SaveExpense
+import com.ucb.usecases.GetAllExpenses
+import com.ucb.data.ExpenseRepository
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
@@ -130,5 +134,28 @@ object AppModule {
     @Singleton
     fun provideIPushDataSource(): IPushDataSource {
         return FirebaseNotificationDataSource()
+    }
+    @Provides
+    @Singleton
+    fun provideExpenseLocalDataSource(@ApplicationContext context: Context): IExpenseDataSource {
+        return ExpenseLocalDataSource(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideExpenseRepository(dataSource: IExpenseDataSource): ExpenseRepository {
+        return ExpenseRepository(dataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSaveExpenseUseCase(repository: ExpenseRepository): SaveExpense {
+        return SaveExpense(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetAllExpensesUseCase(repository: ExpenseRepository): GetAllExpenses {
+        return GetAllExpenses(repository)
     }
 }
