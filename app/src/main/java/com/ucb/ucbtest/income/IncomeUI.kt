@@ -19,7 +19,7 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun IncomeUI(viewModel: IncomeViewModel = hiltViewModel()) {
+fun IncomeUI(viewModel: IncomeViewModel = hiltViewModel(),onNewIncome: () -> Unit = {}) {
     val state by viewModel.state.collectAsState()
     val saveState by viewModel.saveState.collectAsState()
 
@@ -37,6 +37,7 @@ fun IncomeUI(viewModel: IncomeViewModel = hiltViewModel()) {
             amount = ""
             description = ""
             viewModel.resetSaveState()
+            onNewIncome()
         }
     }
 

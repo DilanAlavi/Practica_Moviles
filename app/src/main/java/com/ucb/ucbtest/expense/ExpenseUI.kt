@@ -19,7 +19,7 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpenseUI(viewModel: ExpenseViewModel = hiltViewModel()) {
+fun ExpenseUI(viewModel: ExpenseViewModel = hiltViewModel(),onNewExpense: () -> Unit = {}) {
     val state by viewModel.state.collectAsState()
     val saveState by viewModel.saveState.collectAsState()
 
@@ -37,6 +37,7 @@ fun ExpenseUI(viewModel: ExpenseViewModel = hiltViewModel()) {
             amount = ""
             description = ""
             viewModel.resetSaveState()
+            onNewExpense()
         }
     }
 

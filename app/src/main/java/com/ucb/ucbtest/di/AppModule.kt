@@ -39,6 +39,7 @@ import com.ucb.data.income.IIncomeDataSource
 import com.ucb.usecases.SaveIncome
 import com.ucb.usecases.GetAllIncomes
 import com.ucb.data.IncomeRepository
+import com.ucb.usecases.GetAllFinancialRecords
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -186,5 +187,13 @@ object AppModule {
     @Singleton
     fun provideGetAllIncomesUseCase(repository: IncomeRepository): GetAllIncomes {
         return GetAllIncomes(repository)
+    }
+    @Provides
+    @Singleton
+    fun provideGetAllFinancialRecordsUseCase(
+        expenseRepository: ExpenseRepository,
+        incomeRepository: IncomeRepository
+    ): GetAllFinancialRecords {
+        return GetAllFinancialRecords(expenseRepository, incomeRepository)
     }
 }

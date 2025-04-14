@@ -1,6 +1,7 @@
 // app/src/main/java/com/ucb/ucbtest/finance/FinanceUI.kt
 package com.ucb.ucbtest.finance
 
+
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,12 +15,26 @@ import androidx.navigation.compose.rememberNavController
 import com.ucb.ucbtest.expense.ExpenseUI
 import com.ucb.ucbtest.income.IncomeUI
 import com.ucb.ucbtest.navigation.Screen
+import com.ucb.ucbtest.summary.SummaryUI
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FinanceUI() {
     val navController = rememberNavController()
 
+    // Crear un estado para saber cuando actualizar
+    val needsRefresh = remember { mutableStateOf(false) }
+
+    // Observar cambios en la navegación
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    // Cuando cambia la pestaña, disparamos la actualización
+    LaunchedEffect(navBackStackEntry) {
+        if (needsRefresh.value) {
+            // Restablecer el estado
+            needsRefresh.value = false
+        }
+    }
     Scaffold(
         bottomBar = {
             NavigationBar {
@@ -55,12 +70,27 @@ fun FinanceUI() {
                         }
                     }
                 )
+
+                NavigationBarItem(
+                    icon = { Text("R") },
+                    label = { Text("Resumen") },
+                    selected = currentDestination?.hierarchy?.any { it.route == Screen.SummaryScreen.route } == true,
+                    onClick = {
+                        navController.navigate(Screen.SummaryScreen.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
             }
         }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.ExpenseScreen.route,
+            startDestination = Screen.SummaryScreen.route, // Cambiamos para iniciar en el resumen
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.ExpenseScreen.route) {
@@ -68,6 +98,9 @@ fun FinanceUI() {
             }
             composable(Screen.IncomeScreen.route) {
                 IncomeUI()
+            }
+            composable(Screen.SummaryScreen.route) {
+                SummaryUI()
             }
         }
     }
