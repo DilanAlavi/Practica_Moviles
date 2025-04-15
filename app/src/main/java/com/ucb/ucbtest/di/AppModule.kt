@@ -1,62 +1,70 @@
 package com.ucb.ucbtest.di
 
 import android.content.Context
+import com.ucb.data.BookRepository
+import com.ucb.data.ExpenseRepository
+import com.ucb.data.FavoriteBookRepository
 import com.ucb.data.GithubRepository
+import com.ucb.data.IncomeRepository
 import com.ucb.data.LoginRepository
 import com.ucb.data.MovieRepository
+import com.ucb.data.NotificationRepository
 import com.ucb.data.PushNotificationRepository
+import com.ucb.data.book.IBookRemoteDataSource
+import com.ucb.data.book.IFavoriteBookDataSource
 import com.ucb.data.datastore.ILoginDataStore
+import com.ucb.data.expense.IExpenseDataSource
 import com.ucb.data.git.IGitRemoteDataSource
 import com.ucb.data.git.ILocalDataSource
+import com.ucb.data.income.IIncomeDataSource
 import com.ucb.data.movie.IMovieRemoteDataSource
+import com.ucb.data.notification.INotificationService
 import com.ucb.data.push.IPushDataSource
+import com.ucb.framework.book.BookRemoteDataSource
+import com.ucb.framework.book.FavoriteBookLocalDataSource
+import com.ucb.framework.datastore.LoginDataSource
+import com.ucb.framework.expense.ExpenseLocalDataSource
 import com.ucb.framework.github.GithubLocalDataSource
 import com.ucb.framework.github.GithubRemoteDataSource
+import com.ucb.framework.income.IncomeLocalDataSource
 import com.ucb.framework.movie.MovieRemoteDataSource
+import com.ucb.framework.notification.InternalNotificationService
+import com.ucb.framework.push.FirebaseNotificationDataSource
+import com.ucb.framework.service.NotificationService
 import com.ucb.framework.service.RetrofitBuilder
 import com.ucb.ucbtest.R
+import com.ucb.usecases.CheckBalance
+import com.ucb.usecases.CheckSufficientBalance
+import com.ucb.usecases.DeleteExpense
+import com.ucb.usecases.DeleteIncome
 import com.ucb.usecases.DoLogin
 import com.ucb.usecases.FindGitAlias
+import com.ucb.usecases.GetAllExpenses
+import com.ucb.usecases.GetAllFavoriteBooks
+import com.ucb.usecases.GetAllFinancialRecords
+import com.ucb.usecases.GetAllIncomes
+import com.ucb.usecases.GetEmailKey
 import com.ucb.usecases.GetPopularMovies
+import com.ucb.usecases.IsBookFavorite
+import com.ucb.usecases.NotifyInsufficientFunds
+import com.ucb.usecases.ObtainToken
+import com.ucb.usecases.SaveExpense
 import com.ucb.usecases.SaveGitalias
+import com.ucb.usecases.SaveIncome
+import com.ucb.usecases.SearchBooks
+import com.ucb.usecases.ToggleFavoriteBook
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import com.ucb.framework.datastore.LoginDataSource
-import com.ucb.framework.push.FirebaseNotificationDataSource
-import com.ucb.usecases.GetEmailKey
-import com.ucb.usecases.ObtainToken
-import com.ucb.framework.expense.ExpenseLocalDataSource
-import com.ucb.data.expense.IExpenseDataSource
-import com.ucb.usecases.SaveExpense
-import com.ucb.usecases.GetAllExpenses
-import com.ucb.data.ExpenseRepository
-import com.ucb.framework.income.IncomeLocalDataSource
-import com.ucb.data.income.IIncomeDataSource
-import com.ucb.usecases.SaveIncome
-import com.ucb.usecases.GetAllIncomes
-import com.ucb.data.IncomeRepository
-import com.ucb.usecases.GetAllFinancialRecords
-import com.ucb.usecases.DeleteExpense
-import com.ucb.usecases.DeleteIncome
-import com.ucb.usecases.CheckSufficientBalance
-import com.ucb.framework.service.NotificationService
-import com.ucb.usecases.CheckBalance
-import com.ucb.data.NotificationRepository
-import com.ucb.data.notification.INotificationService
-import com.ucb.framework.notification.InternalNotificationService
-import com.ucb.usecases.NotifyInsufficientFunds
-import com.ucb.usecases.SearchBooks
-import com.ucb.framework.book.BookRemoteDataSource
-import com.ucb.data.BookRepository
-import com.ucb.data.book.IBookRemoteDataSource
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    // Providers existentes...
 
     @Provides
     @Singleton
@@ -64,7 +72,40 @@ object AppModule {
         return RetrofitBuilder(context)
     }
 
+    // ... (resto de providers existentes)
 
+    // Nuevos providers para favoritos
+    @Provides
+    @Singleton
+    fun provideFavoriteBookLocalDataSource(@ApplicationContext context: Context): IFavoriteBookDataSource {
+        return FavoriteBookLocalDataSource(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFavoriteBookRepository(dataSource: IFavoriteBookDataSource): FavoriteBookRepository {
+        return FavoriteBookRepository(dataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideToggleFavoriteBookUseCase(repository: FavoriteBookRepository): ToggleFavoriteBook {
+        return ToggleFavoriteBook(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideIsBookFavoriteUseCase(repository: FavoriteBookRepository): IsBookFavorite {
+        return IsBookFavorite(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetAllFavoriteBooksUseCase(repository: FavoriteBookRepository): GetAllFavoriteBooks {
+        return GetAllFavoriteBooks(repository)
+    }
+
+    // Resto de providers existentes...
     @Provides
     @Singleton
     fun gitRemoteDataSource(retrofiService: RetrofitBuilder): IGitRemoteDataSource {
