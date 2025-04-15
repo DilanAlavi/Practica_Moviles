@@ -42,6 +42,13 @@ import com.ucb.data.IncomeRepository
 import com.ucb.usecases.GetAllFinancialRecords
 import com.ucb.usecases.DeleteExpense
 import com.ucb.usecases.DeleteIncome
+import com.ucb.usecases.CheckSufficientBalance
+import com.ucb.framework.service.NotificationService
+import com.ucb.usecases.CheckBalance
+import com.ucb.data.NotificationRepository
+import com.ucb.data.notification.INotificationService
+import com.ucb.framework.notification.InternalNotificationService
+import com.ucb.usecases.NotifyInsufficientFunds
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -208,5 +215,47 @@ object AppModule {
     @Singleton
     fun provideDeleteIncomeUseCase(repository: IncomeRepository): DeleteIncome {
         return DeleteIncome(repository)
+    }
+    @Provides
+    @Singleton
+    fun provideNotificationService(@ApplicationContext context: Context): NotificationService {
+        return NotificationService(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCheckSufficientBalance(
+        expenseRepository: ExpenseRepository,
+        incomeRepository: IncomeRepository
+    ): CheckSufficientBalance {
+        return CheckSufficientBalance(expenseRepository, incomeRepository)
+    }
+    @Provides
+    @Singleton
+    fun provideInternalNotificationService(@ApplicationContext context: Context): INotificationService {
+        return InternalNotificationService(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationRepository(notificationService: INotificationService): NotificationRepository {
+        return NotificationRepository(notificationService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCheckBalanceUseCase(
+        expenseRepository: ExpenseRepository,
+        incomeRepository: IncomeRepository
+    ): CheckBalance {
+        return CheckBalance(expenseRepository, incomeRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotifyInsufficientFundsUseCase(
+        notificationRepository: NotificationRepository
+    ): NotifyInsufficientFunds {
+        return NotifyInsufficientFunds(notificationRepository)
     }
 }
