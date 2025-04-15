@@ -49,6 +49,10 @@ import com.ucb.data.NotificationRepository
 import com.ucb.data.notification.INotificationService
 import com.ucb.framework.notification.InternalNotificationService
 import com.ucb.usecases.NotifyInsufficientFunds
+import com.ucb.usecases.SearchBooks
+import com.ucb.framework.book.BookRemoteDataSource
+import com.ucb.data.BookRepository
+import com.ucb.data.book.IBookRemoteDataSource
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -257,5 +261,22 @@ object AppModule {
         notificationRepository: NotificationRepository
     ): NotifyInsufficientFunds {
         return NotifyInsufficientFunds(notificationRepository)
+    }
+    @Provides
+    @Singleton
+    fun provideBookRemoteDataSource(retrofitBuilder: RetrofitBuilder): IBookRemoteDataSource {
+        return BookRemoteDataSource(retrofitBuilder)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBookRepository(dataSource: IBookRemoteDataSource): BookRepository {
+        return BookRepository(dataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSearchBooksUseCase(bookRepository: BookRepository): SearchBooks {
+        return SearchBooks(bookRepository)
     }
 }
