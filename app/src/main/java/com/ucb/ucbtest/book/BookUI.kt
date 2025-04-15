@@ -22,10 +22,7 @@ import com.ucb.domain.Book
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookUI(
-    viewModel: BookViewModel = hiltViewModel(),
-    onBookSelected: (Book) -> Unit = {}
-) {
+fun BookUI(viewModel: BookViewModel = hiltViewModel()) {
     var searchQuery by remember { mutableStateOf("") }
     val bookState by viewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
@@ -88,7 +85,7 @@ fun BookUI(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(state.books) { book ->
-                            BookItem(book = book, onClick = { onBookSelected(book) })
+                            BookItem(book = book)
                         }
                     }
                 }
@@ -106,12 +103,11 @@ fun BookUI(
 }
 
 @Composable
-fun BookItem(book: Book, onClick: () -> Unit) {
+fun BookItem(book: Book) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        onClick = onClick
+            .padding(vertical = 4.dp)
     ) {
         Row(
             modifier = Modifier
