@@ -40,6 +40,8 @@ import com.ucb.usecases.SaveIncome
 import com.ucb.usecases.GetAllIncomes
 import com.ucb.data.IncomeRepository
 import com.ucb.usecases.GetAllFinancialRecords
+import com.ucb.usecases.DeleteExpense
+import com.ucb.usecases.DeleteIncome
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -195,5 +197,16 @@ object AppModule {
         incomeRepository: IncomeRepository
     ): GetAllFinancialRecords {
         return GetAllFinancialRecords(expenseRepository, incomeRepository)
+    }
+    @Provides
+    @Singleton
+    fun provideDeleteExpenseUseCase(repository: ExpenseRepository): DeleteExpense {
+        return DeleteExpense(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteIncomeUseCase(repository: IncomeRepository): DeleteIncome {
+        return DeleteIncome(repository)
     }
 }

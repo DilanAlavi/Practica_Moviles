@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,11 +20,14 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpenseUI(viewModel: ExpenseViewModel = hiltViewModel(),onNewExpense: () -> Unit = {}) {
+fun ExpenseUI(viewModel: ExpenseViewModel = hiltViewModel(), onNewExpense: () -> Unit = {}) {
     val state by viewModel.state.collectAsState()
     val saveState by viewModel.saveState.collectAsState()
+    val deleteState by viewModel.deleteState.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    var expenseToDelete by remember { mutableStateOf<Expense?>(null) }
     var name by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -38,6 +42,15 @@ fun ExpenseUI(viewModel: ExpenseViewModel = hiltViewModel(),onNewExpense: () -> 
             description = ""
             viewModel.resetSaveState()
             onNewExpense()
+        }
+    }
+
+    // Observar cambios en el estado de eliminación
+    LaunchedEffect(deleteState) {
+        if (deleteState != null) {
+            viewModel.resetDeleteState()
+            showDeleteConfirmDialog = false
+            expenseToDelete = null
         }
     }
 
@@ -68,7 +81,13 @@ fun ExpenseUI(viewModel: ExpenseViewModel = hiltViewModel(),onNewExpense: () -> 
                             Text("No hay gastos registrados")
                         }
                     } else {
-                        ExpensesList(expenses = currentState.expenses)
+                        ExpensesList(
+                            expenses = currentState.expenses,
+                            onDeleteClick = { expense ->
+                                expenseToDelete = expense
+                                showDeleteConfirmDialog = true
+                            }
+                        )
                     }
                 }
                 is ExpenseViewModel.ExpenseState.Error -> {
@@ -128,22 +147,55 @@ fun ExpenseUI(viewModel: ExpenseViewModel = hiltViewModel(),onNewExpense: () -> 
             }
         )
     }
+
+    // Dialog para confirmar eliminación
+    if (showDeleteConfirmDialog && expenseToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteConfirmDialog = false
+                expenseToDelete = null
+            },
+            title = { Text("Confirmar eliminación") },
+            text = { Text("¿Estás seguro de que deseas eliminar este gasto?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        expenseToDelete?.let {
+                            viewModel.deleteExpense(it.id)
+                        }
+                    }
+                ) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmDialog = false
+                        expenseToDelete = null
+                    }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun ExpensesList(expenses: List<Expense>) {
+fun ExpensesList(expenses: List<Expense>, onDeleteClick: (Expense) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp)
     ) {
         items(expenses) { expense ->
-            ExpenseItem(expense = expense)
+            ExpenseItem(expense = expense, onDeleteClick = onDeleteClick)
         }
     }
 }
 
 @Composable
-fun ExpenseItem(expense: Expense) {
+fun ExpenseItem(expense: Expense, onDeleteClick: (Expense) -> Unit) {
     val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
     val date = try {
         val parsedDate = dateFormat.parse(expense.date)
@@ -160,10 +212,27 @@ fun ExpenseItem(expense: Expense) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = expense.name,
-                style = MaterialTheme.typography.titleMedium
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = expense.name,
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                IconButton(
+                    onClick = { onDeleteClick(expense) }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Bs. ${String.format("%.2f", expense.amount)}",

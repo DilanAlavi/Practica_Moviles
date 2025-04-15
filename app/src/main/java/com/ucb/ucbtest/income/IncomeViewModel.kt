@@ -3,6 +3,7 @@ package com.ucb.ucbtest.income
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ucb.domain.Income
+import com.ucb.usecases.DeleteIncome
 import com.ucb.usecases.GetAllIncomes
 import com.ucb.usecases.SaveIncome
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class IncomeViewModel @Inject constructor(
     private val saveIncome: SaveIncome,
-    private val getAllIncomes: GetAllIncomes
+    private val getAllIncomes: GetAllIncomes,
+    private val deleteIncome: DeleteIncome
 ) : ViewModel() {
 
     sealed class IncomeState {
@@ -31,6 +33,9 @@ class IncomeViewModel @Inject constructor(
 
     private val _saveState = MutableStateFlow<Boolean?>(null)
     val saveState: StateFlow<Boolean?> = _saveState
+
+    private val _deleteState = MutableStateFlow<Boolean?>(null)
+    val deleteState: StateFlow<Boolean?> = _deleteState
 
     init {
         loadIncomes()
@@ -81,7 +86,25 @@ class IncomeViewModel @Inject constructor(
         }
     }
 
+    fun deleteIncome(id: Long) {
+        viewModelScope.launch {
+            try {
+                val success = deleteIncome.invoke(id)
+                _deleteState.value = success
+                if (success) {
+                    loadIncomes() // Recargar la lista después de eliminar
+                }
+            } catch (e: Exception) {
+                _deleteState.value = false
+            }
+        }
+    }
+
     fun resetSaveState() {
         _saveState.value = null
+    }
+
+    fun resetDeleteState() {
+        _deleteState.value = null
     }
 }

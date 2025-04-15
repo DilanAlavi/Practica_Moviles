@@ -3,6 +3,7 @@ package com.ucb.ucbtest.expense
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ucb.domain.Expense
+import com.ucb.usecases.DeleteExpense
 import com.ucb.usecases.GetAllExpenses
 import com.ucb.usecases.SaveExpense
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ExpenseViewModel @Inject constructor(
     private val saveExpense: SaveExpense,
-    private val getAllExpenses: GetAllExpenses
+    private val getAllExpenses: GetAllExpenses,
+    private val deleteExpense: DeleteExpense
 ) : ViewModel() {
 
     sealed class ExpenseState {
@@ -31,6 +33,9 @@ class ExpenseViewModel @Inject constructor(
 
     private val _saveState = MutableStateFlow<Boolean?>(null)
     val saveState: StateFlow<Boolean?> = _saveState
+
+    private val _deleteState = MutableStateFlow<Boolean?>(null)
+    val deleteState: StateFlow<Boolean?> = _deleteState
 
     init {
         loadExpenses()
@@ -81,7 +86,25 @@ class ExpenseViewModel @Inject constructor(
         }
     }
 
+    fun deleteExpense(id: Long) {
+        viewModelScope.launch {
+            try {
+                val success = deleteExpense.invoke(id)
+                _deleteState.value = success
+                if (success) {
+                    loadExpenses() // Recargar la lista después de eliminar
+                }
+            } catch (e: Exception) {
+                _deleteState.value = false
+            }
+        }
+    }
+
     fun resetSaveState() {
         _saveState.value = null
+    }
+
+    fun resetDeleteState() {
+        _deleteState.value = null
     }
 }

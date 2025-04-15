@@ -52,4 +52,9 @@ class SummaryViewModel @Inject constructor(
             }
         }
     }
+
+    // Método para refrescar los datos desde otras pantallas
+    fun refreshData() {
+        loadRecords()
+    }
 }
