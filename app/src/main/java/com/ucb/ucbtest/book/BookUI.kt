@@ -6,11 +6,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -26,11 +30,28 @@ fun BookUI(viewModel: BookViewModel = hiltViewModel()) {
     var searchQuery by remember { mutableStateOf("") }
     val bookState by viewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
+    var showFavoritesOnly by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Búsqueda de Libros") }
+                title = { Text("Búsqueda de Libros") },
+                actions = {
+                    // Botón para mostrar solo favoritos
+                    IconButton(onClick = {
+                        showFavoritesOnly = !showFavoritesOnly
+                        if (showFavoritesOnly) {
+                            viewModel.loadFavorites()
+                        } else if (searchQuery.isNotBlank()) {
+                            viewModel.searchBooks(searchQuery)
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.List,
+                            contentDescription = if (showFavoritesOnly) "Mostrar búsqueda" else "Mostrar favoritos"
+                        )
+                    }
+                }
             )
         }
     ) { padding ->
@@ -40,6 +61,7 @@ fun BookUI(viewModel: BookViewModel = hiltViewModel()) {
                 .padding(padding)
                 .padding(16.dp)
         ) {
+            // Campo de búsqueda
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -48,6 +70,7 @@ fun BookUI(viewModel: BookViewModel = hiltViewModel()) {
                 trailingIcon = {
                     IconButton(onClick = {
                         focusManager.clearFocus()
+                        showFavoritesOnly = false
                         viewModel.searchBooks(searchQuery)
                     }) {
                         Icon(Icons.Default.Search, contentDescription = "Buscar")
@@ -56,6 +79,7 @@ fun BookUI(viewModel: BookViewModel = hiltViewModel()) {
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
                     focusManager.clearFocus()
+                    showFavoritesOnly = false
                     viewModel.searchBooks(searchQuery)
                 }),
                 singleLine = true
@@ -63,13 +87,14 @@ fun BookUI(viewModel: BookViewModel = hiltViewModel()) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Estado de la búsqueda
             when (val state = bookState) {
                 is BookViewModel.BookState.Initial -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Ingrese un término para buscar libros")
+                        Text("Ingrese un término para buscar libros o vea sus favoritos")
                     }
                 }
                 is BookViewModel.BookState.Loading -> {
@@ -81,11 +106,22 @@ fun BookUI(viewModel: BookViewModel = hiltViewModel()) {
                     }
                 }
                 is BookViewModel.BookState.Success -> {
+                    // Mostrar el título apropiado
+                    Text(
+                        text = if (showFavoritesOnly) "Mis Libros Favoritos" else "Resultados de la búsqueda",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(state.books) { book ->
-                            BookItem(book = book)
+                            BookItem(
+                                book = book,
+                                isFavorite = state.favoriteKeys.contains(book.key),
+                                onFavoriteClick = { viewModel.toggleFavorite(book) }
+                            )
                         }
                     }
                 }
@@ -103,7 +139,7 @@ fun BookUI(viewModel: BookViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun BookItem(book: Book) {
+fun BookItem(book: Book, isFavorite: Boolean, onFavoriteClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -165,6 +201,17 @@ fun BookItem(book: Book) {
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
+            }
+
+            // Botón de favorito
+            IconButton(
+                onClick = onFavoriteClick
+            ) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = if (isFavorite) "Eliminar de favoritos" else "Añadir a favoritos",
+                    tint = if (isFavorite) Color.Red else Color.Gray
+                )
             }
         }
     }
