@@ -31,8 +31,9 @@ class BookViewModel @Inject constructor(
     private val _state = MutableStateFlow<BookState>(BookState.Initial)
     val state: StateFlow<BookState> = _state
 
-    private val _favoriteState = MutableStateFlow<Map<String, Boolean>>(emptyMap())
-    val favoriteState: StateFlow<Map<String, Boolean>> = _favoriteState
+    // Estado para controlar cuándo se ha completado la carga principal de resultados
+    private val _resultsLoaded = MutableStateFlow(false)
+    val resultsLoaded: StateFlow<Boolean> = _resultsLoaded
 
     // Método para búsqueda de libros
     fun searchBooks(query: String) {
@@ -41,26 +42,44 @@ class BookViewModel @Inject constructor(
             return
         }
 
+        // Indicamos que los resultados están cargando y restablecer el estado de resultados cargados
         _state.value = BookState.Loading
+        _resultsLoaded.value = false
+
         viewModelScope.launch {
-            when (val result = searchBooks.invoke(query)) {
-                is NetworkResult.Success -> {
-                    if (result.data.isEmpty()) {
-                        _state.value = BookState.Error("No se encontraron libros para: $query")
-                    } else {
-                        // Verificar cuáles son favoritos
-                        val favoriteKeys = mutableSetOf<String>()
-                        result.data.forEach { book ->
-                            if (isBookFavorite.invoke(book.key)) {
-                                favoriteKeys.add(book.key)
+            try {
+                // Realizar la búsqueda
+                val result = searchBooks.invoke(query)
+
+                when (result) {
+                    is NetworkResult.Success -> {
+                        if (result.data.isEmpty()) {
+                            _state.value = BookState.Error("No se encontraron libros para: $query")
+                        } else {
+                            // Primero mostramos los resultados sin verificar favoritos
+                            _state.value = BookState.Success(result.data)
+
+                            // Luego verificamos los favoritos en segundo plano
+                            val favoriteKeys = mutableSetOf<String>()
+                            result.data.forEach { book ->
+                                if (isBookFavorite.invoke(book.key)) {
+                                    favoriteKeys.add(book.key)
+                                }
                             }
+
+                            // Actualizar con la información de favoritos
+                            _state.value = BookState.Success(result.data, favoriteKeys)
+
+                            // Marcar que los resultados están completamente cargados
+                            _resultsLoaded.value = true
                         }
-                        _state.value = BookState.Success(result.data, favoriteKeys)
+                    }
+                    is NetworkResult.Error -> {
+                        _state.value = BookState.Error(result.error)
                     }
                 }
-                is NetworkResult.Error -> {
-                    _state.value = BookState.Error(result.error)
-                }
+            } catch (e: Exception) {
+                _state.value = BookState.Error("Error al buscar libros: ${e.message}")
             }
         }
     }
@@ -91,6 +110,8 @@ class BookViewModel @Inject constructor(
     // Método para cargar sólo los favoritos
     fun loadFavorites() {
         _state.value = BookState.Loading
+        _resultsLoaded.value = false
+
         viewModelScope.launch {
             val favorites = getAllFavoriteBooks.invoke()
             if (favorites.isEmpty()) {
@@ -98,7 +119,14 @@ class BookViewModel @Inject constructor(
             } else {
                 val favoriteKeys = favorites.map { it.key }.toSet()
                 _state.value = BookState.Success(favorites, favoriteKeys)
+                _resultsLoaded.value = true
             }
         }
+    }
+
+    // Método para reiniciar al estado inicial
+    fun resetToInitialState() {
+        _state.value = BookState.Initial
+        _resultsLoaded.value = false
     }
 }

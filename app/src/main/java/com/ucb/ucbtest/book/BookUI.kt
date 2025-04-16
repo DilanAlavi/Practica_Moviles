@@ -32,19 +32,27 @@ fun BookUI(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val bookState by viewModel.state.collectAsState()
+    val resultsLoaded by viewModel.resultsLoaded.collectAsState()
     val focusManager = LocalFocusManager.current
     var showFavoritesOnly by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Búsqueda de Libros") },
                 actions = {
+                    // Botón para alternar entre búsqueda y favoritos locales
                     IconButton(onClick = {
-                        showFavoritesOnly = !showFavoritesOnly
-                        if (showFavoritesOnly) {
+                        if (!showFavoritesOnly) {
                             viewModel.loadFavorites()
-                        } else if (searchQuery.isNotBlank()) {
-                            viewModel.searchBooks(searchQuery)
+                            showFavoritesOnly = true
+                        } else {
+                            if (searchQuery.isNotBlank()) {
+                                viewModel.searchBooks(searchQuery)
+                            } else {
+                                viewModel.resetToInitialState()
+                            }
+                            showFavoritesOnly = false
                         }
                     }) {
                         Icon(
@@ -52,6 +60,8 @@ fun BookUI(
                             contentDescription = if (showFavoritesOnly) "Mostrar búsqueda" else "Mostrar favoritos locales"
                         )
                     }
+
+                    // Botón para ir a la pantalla completa de favoritos
                     IconButton(onClick = onFavoritesClick) {
                         Icon(
                             imageVector = Icons.Default.Favorite,
@@ -76,18 +86,22 @@ fun BookUI(
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
                     IconButton(onClick = {
-                        focusManager.clearFocus()
-                        showFavoritesOnly = false
-                        viewModel.searchBooks(searchQuery)
+                        if (searchQuery.isNotBlank()) {
+                            focusManager.clearFocus()
+                            showFavoritesOnly = false
+                            viewModel.searchBooks(searchQuery)
+                        }
                     }) {
                         Icon(Icons.Default.Search, contentDescription = "Buscar")
                     }
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
-                    focusManager.clearFocus()
-                    showFavoritesOnly = false
-                    viewModel.searchBooks(searchQuery)
+                    if (searchQuery.isNotBlank()) {
+                        focusManager.clearFocus()
+                        showFavoritesOnly = false
+                        viewModel.searchBooks(searchQuery)
+                    }
                 }),
                 singleLine = true
             )
@@ -124,10 +138,12 @@ fun BookUI(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(state.books) { book ->
+                            // Mostrar el botón de favorito solo cuando los resultados están completamente cargados
                             BookItem(
                                 book = book,
                                 isFavorite = state.favoriteKeys.contains(book.key),
-                                onFavoriteClick = { viewModel.toggleFavorite(book) }
+                                onFavoriteClick = { viewModel.toggleFavorite(book) },
+                                showFavoriteButton = resultsLoaded // Solo mostrar el botón cuando está cargado
                             )
                         }
                     }
@@ -146,7 +162,12 @@ fun BookUI(
 }
 
 @Composable
-fun BookItem(book: Book, isFavorite: Boolean, onFavoriteClick: () -> Unit) {
+fun BookItem(
+    book: Book,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
+    showFavoriteButton: Boolean = true
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -210,15 +231,20 @@ fun BookItem(book: Book, isFavorite: Boolean, onFavoriteClick: () -> Unit) {
                 }
             }
 
-            // Botón de favorito
-            IconButton(
-                onClick = onFavoriteClick
-            ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = if (isFavorite) "Eliminar de favoritos" else "Añadir a favoritos",
-                    tint = if (isFavorite) Color.Red else Color.Gray
-                )
+            // Botón de favorito - solo se muestra cuando showFavoriteButton es true
+            if (showFavoriteButton) {
+                IconButton(
+                    onClick = onFavoriteClick
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = if (isFavorite) "Eliminar de favoritos" else "Añadir a favoritos",
+                        tint = if (isFavorite) Color.Red else Color.Gray
+                    )
+                }
+            } else {
+                // Espacio placeholder cuando no se muestra el botón
+                Spacer(modifier = Modifier.width(48.dp))
             }
         }
     }
