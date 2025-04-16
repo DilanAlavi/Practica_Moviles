@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.ucb.ucbtest.book.BookUI
+import com.ucb.ucbtest.book.FavoriteBooksUI
 
 @Composable
 fun AppNavigation() {
@@ -21,7 +22,15 @@ fun AppNavigation() {
         popExitTransition = { ExitTransition.None }
     ) {
         composable(Screen.BookSearchScreen.route) {
-            BookUI()
+            BookUI(
+                onFavoritesClick = { navController.navigate(Screen.FavoriteBooksScreen.route) }
+            )
+        }
+
+        composable(Screen.FavoriteBooksScreen.route) {
+            FavoriteBooksUI(
+                onBackPressed = { navController.popBackStack() }
+            )
         }
     }
 }

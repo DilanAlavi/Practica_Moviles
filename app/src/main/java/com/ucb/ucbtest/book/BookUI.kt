@@ -26,18 +26,19 @@ import com.ucb.domain.Book
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookUI(viewModel: BookViewModel = hiltViewModel()) {
+fun BookUI(
+    viewModel: BookViewModel = hiltViewModel(),
+    onFavoritesClick: () -> Unit = {}
+) {
     var searchQuery by remember { mutableStateOf("") }
     val bookState by viewModel.state.collectAsState()
     val focusManager = LocalFocusManager.current
     var showFavoritesOnly by remember { mutableStateOf(false) }
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Búsqueda de Libros") },
                 actions = {
-                    // Botón para mostrar solo favoritos
                     IconButton(onClick = {
                         showFavoritesOnly = !showFavoritesOnly
                         if (showFavoritesOnly) {
@@ -48,7 +49,13 @@ fun BookUI(viewModel: BookViewModel = hiltViewModel()) {
                     }) {
                         Icon(
                             imageVector = Icons.Default.List,
-                            contentDescription = if (showFavoritesOnly) "Mostrar búsqueda" else "Mostrar favoritos"
+                            contentDescription = if (showFavoritesOnly) "Mostrar búsqueda" else "Mostrar favoritos locales"
+                        )
+                    }
+                    IconButton(onClick = onFavoritesClick) {
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = "Ver todos los favoritos"
                         )
                     }
                 }
