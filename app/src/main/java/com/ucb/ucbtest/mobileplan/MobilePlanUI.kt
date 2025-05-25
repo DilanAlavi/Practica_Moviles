@@ -1,4 +1,3 @@
-// app/src/main/java/com/ucb/ucbtest/mobileplan/MobilePlanUI.kt
 package com.ucb.ucbtest.mobileplan
 
 import android.content.Intent
