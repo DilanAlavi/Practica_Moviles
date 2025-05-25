@@ -1,3 +1,4 @@
+// app/src/main/java/com/ucb/ucbtest/navigation/AppNavigation.kt
 package com.ucb.ucbtest.navigation
 
 import androidx.compose.animation.EnterTransition
@@ -6,8 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.ucb.ucbtest.book.BookUI
-import com.ucb.ucbtest.book.FavoriteBooksUI
+import com.ucb.ucbtest.home.HomeUI
 
 @Composable
 fun AppNavigation() {
@@ -15,22 +15,14 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.BookSearchScreen.route,
+        startDestination = Screen.HomeScreen.route,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
         popExitTransition = { ExitTransition.None }
     ) {
-        composable(Screen.BookSearchScreen.route) {
-            BookUI(
-                onFavoritesClick = { navController.navigate(Screen.FavoriteBooksScreen.route) }
-            )
-        }
-
-        composable(Screen.FavoriteBooksScreen.route) {
-            FavoriteBooksUI(
-                onBackPressed = { navController.popBackStack() }
-            )
+        composable(Screen.HomeScreen.route) {
+            HomeUI()
         }
     }
 }

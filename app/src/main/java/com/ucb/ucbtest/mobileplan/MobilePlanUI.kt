@@ -1,3 +1,4 @@
+// app/src/main/java/com/ucb/ucbtest/mobileplan/MobilePlanUI.kt
 package com.ucb.ucbtest.mobileplan
 
 import android.content.Intent
@@ -143,7 +144,7 @@ fun MobilePlanCard(plan: MobilePlan) {
             // Precios
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Row(
-                    verticalAlignment = Alignment.Baseline,
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
@@ -167,7 +168,7 @@ fun MobilePlanCard(plan: MobilePlan) {
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Row(
-                    verticalAlignment = Alignment.Baseline,
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(

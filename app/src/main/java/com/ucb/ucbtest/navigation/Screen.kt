@@ -1,3 +1,4 @@
+// app/src/main/java/com/ucb/ucbtest/navigation/Screen.kt
 package com.ucb.ucbtest.navigation
 
 sealed class Screen(val route: String) {
@@ -15,5 +16,6 @@ sealed class Screen(val route: String) {
     object BookSearchScreen : Screen("bookSearch")
     object BookDetailScreen : Screen("bookDetail")
     object FavoriteBooksScreen : Screen("favoriteBooks")
-
+    object HomeScreen : Screen("home")
+    object MobilePlanScreen : Screen("mobilePlans")
 }
