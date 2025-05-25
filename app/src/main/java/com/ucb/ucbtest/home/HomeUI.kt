@@ -1,40 +1,95 @@
 package com.ucb.ucbtest.home
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import com.ucb.ucbtest.R
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.ucb.ucbtest.mobileplan.MobilePlanCard
+import com.ucb.ucbtest.mobileplan.MobilePlanViewModel
 
 @Composable
-fun HomeUI() {
+fun HomeUI(
+    mobileViewModel: MobilePlanViewModel = hiltViewModel()
+) {
+    val plans by mobileViewModel.plans.collectAsState()
+    val currentPlanIndex by mobileViewModel.currentPlanIndex.collectAsState()
 
-    val completeName = "Roberto Carlos Callisaya Mamani"
+    LaunchedEffect(Unit) {
+        mobileViewModel.loadPlans()
+    }
 
-    Scaffold {
-        innerPadding -> Box( modifier = Modifier.padding(innerPadding)) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (plans.isNotEmpty()) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
-                    contentDescription = ""
-                )
-                Text(
-                    stringResource(R.string.home_welcome_text, completeName)
-                )
+                // Navigation buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Left arrow button
+                    IconButton(
+                        onClick = { mobileViewModel.showPreviousPlan() },
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowLeft,
+                            contentDescription = "Plan anterior",
+                            modifier = Modifier.size(32.dp),
+                            tint = Color(0xFFFF6B6B)
+                        )
+                    }
 
+                    // Plan indicator
+                    Text(
+                        text = "${currentPlanIndex + 1} / ${plans.size}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFFFF6B6B)
+                    )
+
+                    // Right arrow button
+                    IconButton(
+                        onClick = { mobileViewModel.showNextPlan() },
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowRight,
+                            contentDescription = "Siguiente plan",
+                            modifier = Modifier.size(32.dp),
+                            tint = Color(0xFFFF6B6B)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Current plan display
+                val currentPlan = mobileViewModel.getCurrentPlan()
+                currentPlan?.let { plan ->
+                    MobilePlanCard(plan = plan)
+                }
             }
+        } else {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFFFF6B6B))
+            }
+        }
     }
-    }
-
 }
