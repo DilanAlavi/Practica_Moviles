@@ -1,3 +1,4 @@
+// app/src/main/java/com/ucb/ucbtest/mobileplan/MobilePlanUI.kt
 package com.ucb.ucbtest.mobileplan
 
 import android.content.Intent
@@ -66,7 +67,10 @@ fun MobilePlanUI(
 }
 
 @Composable
-fun MobilePlanCard(plan: MobilePlan) {
+fun MobilePlanCard(
+    plan: MobilePlan,
+    onPlanSelected: (String) -> Unit = {}
+) {
     val context = LocalContext.current
     val cardColor = Color(android.graphics.Color.parseColor(plan.color))
 
@@ -84,9 +88,13 @@ fun MobilePlanCard(plan: MobilePlan) {
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Badge "Nuestros planes móviles"
             Box(
                 modifier = Modifier
-                    .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(20.dp))
+                    .background(
+                        Color.White.copy(alpha = 0.9f),
+                        RoundedCornerShape(20.dp)
+                    )
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
@@ -99,6 +107,7 @@ fun MobilePlanCard(plan: MobilePlan) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Descripción del plan
             Text(
                 text = "La mejor cobertura, increíbles beneficios y un compromiso con el planeta.",
                 color = Color.White,
@@ -108,6 +117,7 @@ fun MobilePlanCard(plan: MobilePlan) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Nombre del plan
             Text(
                 text = plan.name,
                 color = Color.White,
@@ -117,36 +127,65 @@ fun MobilePlanCard(plan: MobilePlan) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Precios
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Antes ", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Antes ",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp
+                    )
                     Text(
                         text = "$${plan.originalPrice.toInt()}",
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 16.sp,
                         textDecoration = TextDecoration.LineThrough
                     )
-                    Text(" /mes", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
+                    Text(
+                        text = " /mes",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Ahora ", color = Color.White, fontSize = 14.sp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Ahora ",
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
                     Text(
                         text = "$${plan.currentPrice.toInt()}",
                         color = Color.White,
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(" /mes", color = Color.White, fontSize = 14.sp)
+                    Text(
+                        text = " /mes",
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
                 }
 
-                Text(plan.dataAmount, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    text = plan.dataAmount,
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Features
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -164,51 +203,55 @@ fun MobilePlanCard(plan: MobilePlan) {
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(text = feature, color = Color.White, fontSize = 14.sp)
+                        Text(
+                            text = feature,
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Social media icons (simuladas)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(vertical = 8.dp)
             ) {
-                listOf("@", "f", "🐦", "📷", "in", "📺").forEach {
+                repeat(6) { index ->
                     Box(
                         modifier = Modifier
                             .size(32.dp)
-                            .background(Color.White.copy(alpha = 0.2f), CircleShape),
+                            .background(
+                                Color.White.copy(alpha = 0.2f),
+                                CircleShape
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(it, color = Color.White, fontSize = 14.sp)
+                        val icons = listOf("@", "f", "🐦", "📷", "in", "📺")
+                        Text(
+                            text = icons[index],
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // BOTÓN DE WHATSAPP Y ÍCONO
+            // BOTÓN DE WHATSAPP Y ÍCONO - SOLUCIÓN IMPLEMENTADA POR EL USUARIO
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Botón principal "Quiero este plan" con logo de WhatsApp
                 Button(
                     onClick = {
-                        val message = "Hola, UCB mobile, preciso su ayuda"
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            data = Uri.parse("https://wa.me/${plan.whatsappNumber}?text=${Uri.encode(message)}")
-                        }
-                        try {
-                            context.startActivity(intent)
-                        } catch (e: Exception) {
-                            val browserIntent = Intent(Intent.ACTION_VIEW).apply {
-                                data = Uri.parse("https://web.whatsapp.com/send?phone=${plan.whatsappNumber}&text=${Uri.encode(message)}")
-                            }
-                            context.startActivity(browserIntent)
-                        }
+                        // Navegar a la pantalla de SIM delivery
+                        onPlanSelected(plan.name)
                     },
                     modifier = Modifier
                         .weight(1f)
@@ -223,6 +266,7 @@ fun MobilePlanCard(plan: MobilePlan) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
+                        // Logo de WhatsApp en el botón
                         Image(
                             painter = painterResource(id = R.drawable.ic_whatsapp_logo),
                             contentDescription = "WhatsApp Logo",
@@ -238,6 +282,7 @@ fun MobilePlanCard(plan: MobilePlan) {
                     }
                 }
 
+                // Ícono de WhatsApp independiente (circular verde)
                 IconButton(
                     onClick = {
                         val message = "Hola, UCB mobile, preciso su ayuda"
@@ -247,6 +292,7 @@ fun MobilePlanCard(plan: MobilePlan) {
                         try {
                             context.startActivity(intent)
                         } catch (e: Exception) {
+                            // Si WhatsApp no está instalado, abrir en navegador
                             val browserIntent = Intent(Intent.ACTION_VIEW).apply {
                                 data = Uri.parse("https://web.whatsapp.com/send?phone=${plan.whatsappNumber}&text=${Uri.encode(message)}")
                             }
@@ -255,8 +301,12 @@ fun MobilePlanCard(plan: MobilePlan) {
                     },
                     modifier = Modifier
                         .size(48.dp)
-                        .background(Color(0xFF25D366), CircleShape)
+                        .background(
+                            Color(0xFF25D366), // Color verde oficial de WhatsApp
+                            CircleShape
+                        )
                 ) {
+                    // Logo de WhatsApp en el ícono circular
                     Image(
                         painter = painterResource(id = R.drawable.ic_whatsapp_logo),
                         contentDescription = "WhatsApp Icon",

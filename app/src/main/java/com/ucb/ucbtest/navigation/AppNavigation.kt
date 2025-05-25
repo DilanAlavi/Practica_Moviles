@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.ucb.ucbtest.home.HomeUI
+import com.ucb.ucbtest.simdelivery.SimDeliveryUI
 
 @Composable
 fun AppNavigation() {
@@ -22,7 +23,22 @@ fun AppNavigation() {
         popExitTransition = { ExitTransition.None }
     ) {
         composable(Screen.HomeScreen.route) {
-            HomeUI()
+            HomeUI(
+                onPlanSelected = { planName ->
+                    // Navegar a la pantalla de SIM delivery cuando se selecciona un plan
+                    navController.navigate(Screen.SimDeliveryScreen.route)
+                }
+            )
+        }
+
+        composable(Screen.SimDeliveryScreen.route) {
+            SimDeliveryUI(
+                onContinue = {
+                    // Aquí podrías navegar a otra pantalla o mostrar confirmación
+                    // Por ahora regresamos al inicio
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

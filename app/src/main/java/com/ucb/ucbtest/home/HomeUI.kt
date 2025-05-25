@@ -1,3 +1,4 @@
+
 package com.ucb.ucbtest.home
 
 import androidx.compose.foundation.layout.*
@@ -17,7 +18,8 @@ import com.ucb.ucbtest.mobileplan.MobilePlanViewModel
 
 @Composable
 fun HomeUI(
-    mobileViewModel: MobilePlanViewModel = hiltViewModel()
+    mobileViewModel: MobilePlanViewModel = hiltViewModel(),
+    onPlanSelected: (String) -> Unit = {}
 ) {
     val plans by mobileViewModel.plans.collectAsState()
     val currentPlanIndex by mobileViewModel.currentPlanIndex.collectAsState()
@@ -80,7 +82,10 @@ fun HomeUI(
                 // Current plan display
                 val currentPlan = mobileViewModel.getCurrentPlan()
                 currentPlan?.let { plan ->
-                    MobilePlanCard(plan = plan)
+                    MobilePlanCard(
+                        plan = plan,
+                        onPlanSelected = onPlanSelected
+                    )
                 }
             }
         } else {
